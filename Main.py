@@ -38,14 +38,14 @@ def animate(i):  # This function is called at the bottom of the script with the 
         filename = app.filename     # app.filename created when MainWindow objects are initialized
         try:    # Error handling, allows program to keep running in the case of a FileNotFoundError
             if app.data_in_file:    # app.data_in_file, initially false, is set true after successful data reading
-                Data = pd.read_csv(filename, parse_dates=['times'], index_col=0)    # read the CSV file into a dataframe
-                time_list = [tm for tm in Data['times'].dt.to_pydatetime()]  # List Comp, changing the frmt of the times
-                Data['times'] = time_list   # Reassign the times col in Data to be the values of time_list
-                angleList = Data['angles']
+                data = pd.read_csv(filename, parse_dates=['times'], index_col=0)    # read the CSV file into a dataframe
+                time_list = [tm for tm in data['times'].dt.to_pydatetime()]  # List Comp, changing the frmt of the times
+                data['times'] = time_list   # Reassign the times col in Data to be the values of time_list
+                anglelist = Data['angles']
                 x_axis = f.axes[0]
                 x_axis.xaxis.set_major_locator(minutes)
                 a.clear()   # Clear the plot after everytime so it is on the relevant data
-                a.plot(time_list, angleList)
+                a.plot(time_list, anglelist)
                 a.set_xlabel('time')
                 a.set_ylabel('Angle (deg)')
             else:       # if data_in_file is false, trying to plot would result in an error,
@@ -129,34 +129,34 @@ class HomePage(tk.Frame):
         label = tk.Label(self, text="Compound Interest Calculator", font=LARGE_FONT)
         label.place(relx=.5, y=15, anchor=CENTER)
 
-        self.label1 = tk.Label(self, text='Initial Account Value', font=("Helvetica", 14), padx=4)
-        self.label1.place(x=75, y=175, anchor='w', relwidth=.45)
+        self.label1 = tk.Label(self, text='Initial Account Value', font=("Helvetica", 14), padx=20)
+        self.label1.place(x=112.5, y=175, anchor='w', relwidth=.45)
         self.entry1 = Intry(self, justify=CENTER)
-        self.entry1.place(x=300, y=175, relwidth=.1, anchor='w')
+        self.entry1.place(x=387.5, y=175, relwidth=.1, anchor='e')
         self.entry1.set(1500)
 
-        self.label2 = tk.Label(self, text='Account Contributions', font=("Helvetica", 14), padx=4)
-        self.label2.place(x=75, y=200, anchor='w', relwidth=.45)
+        self.label2 = tk.Label(self, text='Account Contributions', font=("Helvetica", 14), padx=25)
+        self.label2.place(x=112.5, y=200, anchor='w', relwidth=.45)
         self.entry2 = Intry(self, justify=CENTER)
-        self.entry2.place(x=300, y=200, relwidth=.1, anchor='w')
+        self.entry2.place(x=387.5, y=200, relwidth=.1, anchor='e')
         self.entry2.set(500)
 
-        self.label3 = tk.Label(self, text='Contributions per year', font=("Helvetica", 14), padx=4)
-        self.label3.place(x=75, y=225, anchor='w', relwidth=.45)
+        self.label3 = tk.Label(self, text='Contributions per year', font=("Helvetica", 14), padx=30)
+        self.label3.place(x=112.5, y=225, anchor='w', relwidth=.45)
         self.entry3 = Intry(self, justify=CENTER)
-        self.entry3.place(x=300, y=225, relwidth=.1, anchor='w')
+        self.entry3.place(x=387.5, y=225, relwidth=.1, anchor='e')
         self.entry3.set(12)
 
-        self.label4 = tk.Label(self, text='Annualized Returns', font=("Helvetica", 14), padx=4)
-        self.label4.place(x=75, y=250, anchor='w', relwidth=.45)
+        self.label4 = tk.Label(self, text='Annualized Returns', font=("Helvetica", 14), padx=35)
+        self.label4.place(x=112.5, y=250, anchor='w', relwidth=.45)
         self.entry4 = Intry(self, justify=CENTER)
-        self.entry4.place(x=300, y=250, relwidth=.1, anchor='w')
+        self.entry4.place(x=387.5, y=250, relwidth=.1, anchor='e')
         self.entry4.set(8)
 
-        self.label5 = tk.Label(self, text='Years to Grow', font=("Helvetica", 14), padx=4)
-        self.label5.place(x=75, y=275, anchor='w', relwidth=.45)
+        self.label5 = tk.Label(self, text='Years to Grow', font=("Helvetica", 14), padx=40)
+        self.label5.place(x=112.5, y=275, anchor='w', relwidth=.45)
         self.entry5 = Intry(self, justify=CENTER)
-        self.entry5.place(x=300, y=275, relwidth=.1, anchor='w')
+        self.entry5.place(x=387.5, y=275, relwidth=.1, anchor='e')
         self.entry5.set(10)
 
         # button to go to plot page
@@ -175,18 +175,14 @@ class HomePage(tk.Frame):
         def calculate():
             principal = int(self.entry1.get())
             contributions = int(self.entry2.get())
-            conts_per_year = int(self.entry3.get())
-            annual = contributions * conts_per_year
+            c_per_year = int(self.entry3.get())
+            annual = contributions * c_per_year
             rate = 1 + (int(self.entry4.get()) / 100)
             years = int(self.entry5.get())
 
             for i in np.arange(0, years):
                 principal = (principal + annual) * rate
-
-            self.label6['text'] = str(principal)
-
-
-
+            self.label6['text'] = '$' + f'{round(principal, 2):,}'
 
 
 class PlotPage(tk.Frame):
