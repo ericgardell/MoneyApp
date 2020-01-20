@@ -41,7 +41,7 @@ def animate(i):  # This function is called at the bottom of the script with the 
                 data = pd.read_csv(filename, parse_dates=['times'], index_col=0)    # read the CSV file into a dataframe
                 time_list = [tm for tm in data['times'].dt.to_pydatetime()]  # List Comp, changing the frmt of the times
                 data['times'] = time_list   # Reassign the times col in Data to be the values of time_list
-                anglelist = Data['angles']
+                anglelist = data['angles']
                 x_axis = f.axes[0]
                 x_axis.xaxis.set_major_locator(minutes)
                 a.clear()   # Clear the plot after everytime so it is on the relevant data
@@ -49,10 +49,10 @@ def animate(i):  # This function is called at the bottom of the script with the 
                 a.set_xlabel('time')
                 a.set_ylabel('Angle (deg)')
             else:       # if data_in_file is false, trying to plot would result in an error,
-                print('Data File not found')
+                print('data File not found')
                 # reset checkbox, tell user than the file was empty
                 app.frames[PlotPage].plot_checkbox.deselect()   # deselect the checkbox
-                app.frames[PlotPage].plot_checkbox['text'] = 'Data File empty'
+                app.frames[PlotPage].plot_checkbox['text'] = 'data File empty'
                 app.frames[PlotPage].update()   # force the window to display the changes
                 time.sleep(1.5)     # wait 1.5 sec so user has a chance to read the text
                 # change text back to original
@@ -60,9 +60,9 @@ def animate(i):  # This function is called at the bottom of the script with the 
                 app.frames[PlotPage].update()   # force the window to display the changes
         except FileNotFoundError:   # no file was found
             # tell user no file was found, then reset back to normal
-            print('Data File not found')
+            print('data File not found')
             app.frames[PlotPage].plot_checkbox.deselect()
-            app.frames[PlotPage].plot_checkbox['text'] = 'Data File not found'
+            app.frames[PlotPage].plot_checkbox['text'] = 'data File not found'
             app.frames[PlotPage].update()
             time.sleep(1.5)
             app.frames[PlotPage].plot_checkbox['text'] = 'Check Box to Enable Live Plotting'
@@ -172,6 +172,10 @@ class HomePage(tk.Frame):
                                  command=lambda: controller.show_frame(PlotPage))
         self.button1.place(relx=.025, rely=.15, relwidth=.15, anchor='w')
 
+        # nums = []
+        # while (num := input("Enter a number: ")).isdigit():
+        #    nums.append(num)
+
         def calculate():
             principal = int(self.entry1.get())
             contributions = int(self.entry2.get())
@@ -179,10 +183,15 @@ class HomePage(tk.Frame):
             annual = contributions * c_per_year
             rate = 1 + (int(self.entry4.get()) / 100)
             years = int(self.entry5.get())
+            total_contributions = principal
 
             for i in np.arange(0, years):
                 principal = (principal + annual) * rate
-            self.label6['text'] = '$' + f'{round(principal, 2):,}'
+                total_contributions += annual
+            line_one = 'Final Account Value: $' + f'{round(principal, 2):,}'
+            line_two = f'Total Contributions: ${round(total_contributions, 2):,}'
+            self.label6['text'] = line_one + '\n' + line_two
+
 
 
 class PlotPage(tk.Frame):
