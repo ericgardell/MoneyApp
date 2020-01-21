@@ -186,6 +186,7 @@ class HomePage(tk.Frame):
             line_one = 'Final Account Value: $' + f'{round(self.balance[-1], 2):,}'
             line_two = f'Total Contributions: ${round(self.total_contributions[-1], 2):,}'
             self.label6['text'] = line_one + '\n' + line_two
+            self.years = np.insert(self.years, 0, 0)
             print(self.balance, '\n', self.years)
 
 
