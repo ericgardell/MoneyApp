@@ -35,29 +35,23 @@ minutes = mdates.MinuteLocator()    # Helps reduce number of ticks on x-axis
 
 def animate(i):  # This function is called at the bottom of the script with the assignment of ani
     if app.frames[PlotPage].var.get():      # This if statement checks whether the checkbox is checked or not
-        filename = app.filename     # app.filename created when MainWindow objects are initialized
         try:    # Error handling, allows program to keep running in the case of a FileNotFoundError
-            if app.data_in_file:    # app.data_in_file, initially false, is set true after successful data reading
-                data = pd.read_csv(filename, parse_dates=['times'], index_col=0)    # read the CSV file into a dataframe
-                time_list = [tm for tm in data['times'].dt.to_pydatetime()]  # List Comp, changing the frmt of the times
-                data['times'] = time_list   # Reassign the times col in Data to be the values of time_list
-                anglelist = data['angles']
-                x_axis = f.axes[0]
-                x_axis.xaxis.set_major_locator(minutes)
-                a.clear()   # Clear the plot after everytime so it is on the relevant data
-                a.plot(time_list, anglelist)
-                a.set_xlabel('time')
-                a.set_ylabel('Angle (deg)')
-            else:       # if data_in_file is false, trying to plot would result in an error,
-                print('data File not found')
-                # reset checkbox, tell user than the file was empty
-                app.frames[PlotPage].plot_checkbox.deselect()   # deselect the checkbox
-                app.frames[PlotPage].plot_checkbox['text'] = 'data File empty'
-                app.frames[PlotPage].update()   # force the window to display the changes
-                time.sleep(1.5)     # wait 1.5 sec so user has a chance to read the text
-                # change text back to original
-                app.frames[PlotPage].plot_checkbox['text'] = 'Check Box to Enable Live Plotting'
-                app.frames[PlotPage].update()   # force the window to display the changes
+            x_axis = f.axes[0]
+            x_axis.xaxis.set_major_locator(minutes)
+            a.clear()   # Clear the plot after everytime so it is on the relevant data
+            a.plot(app.frames[HomePage].years, app.frames[HomePage].balance)
+            a.set_xlabel('Years')
+            a.set_ylabel('Balance')
+            # else:       # if data_in_file is false, trying to plot would result in an error,
+            #     print('data File not found')
+            #     # reset checkbox, tell user than the file was empty
+            #     app.frames[PlotPage].plot_checkbox.deselect()   # deselect the checkbox
+            #     app.frames[PlotPage].plot_checkbox['text'] = 'data File empty'
+            #     app.frames[PlotPage].update()   # force the window to display the changes
+            #     time.sleep(1.5)     # wait 1.5 sec so user has a chance to read the text
+            #     # change text back to original
+            #     app.frames[PlotPage].plot_checkbox['text'] = 'Check Box to Enable Live Plotting'
+            #     app.frames[PlotPage].update()   # force the window to display the changes
         except FileNotFoundError:   # no file was found
             # tell user no file was found, then reset back to normal
             print('data File not found')
@@ -172,26 +166,27 @@ class HomePage(tk.Frame):
                                  command=lambda: controller.show_frame(PlotPage))
         self.button1.place(relx=.025, rely=.15, relwidth=.15, anchor='w')
 
+        self.balance = [int(self.entry1.get())]
+        self.total_contributions = [self.balance[0]]
+        self.years = np.arange(1, int(self.entry5.get()))
+
         # nums = []
         # while (num := input("Enter a number: ")).isdigit():
         #    nums.append(num)
 
         def calculate():
-            principal = int(self.entry1.get())
             contributions = int(self.entry2.get())
             c_per_year = int(self.entry3.get())
-            annual = contributions * c_per_year
+            annual = int(contributions * c_per_year)
             rate = 1 + (int(self.entry4.get()) / 100)
-            years = int(self.entry5.get())
-            total_contributions = principal
 
-            for i in np.arange(0, years):
-                principal = (principal + annual) * rate
-                total_contributions += annual
-            line_one = 'Final Account Value: $' + f'{round(principal, 2):,}'
-            line_two = f'Total Contributions: ${round(total_contributions, 2):,}'
+            for i in self.years:
+                self.balance.append((self.balance[i-1] + annual) * rate)
+                self.total_contributions.append(self.total_contributions[i-1] + annual)
+            line_one = 'Final Account Value: $' + f'{round(self.balance[-1], 2):,}'
+            line_two = f'Total Contributions: ${round(self.total_contributions[-1], 2):,}'
             self.label6['text'] = line_one + '\n' + line_two
-
+            print(self.balance, '\n', self.years)
 
 
 class PlotPage(tk.Frame):
