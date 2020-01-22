@@ -23,19 +23,26 @@ CENTER = tk.CENTER
 
 # Initialize the figure on the plotting page
 f = Figure(figsize=(5, 4), dpi=100)
-a = f.add_subplot(111)
+a1 = f.add_subplot()
+a2 = f.add_subplot()
+# a1, a2 = f.subplots(1, 1, sharex=True, sharey=True, squeeze=False)
+# a1 = f.add_subplot(ax)
+# a2 = f.add_subplot(ax)
+
 minutes = mdates.MinuteLocator()    # Helps reduce number of ticks on x-axis
 
 
 def animate(i):  # This function is called at the bottom of the script with the assignment of ani
+    app.frames[HomePage].CalcButton['relief'] = tk.RAISED
     if app.frames[PlotPage].var.get():      # This if statement checks whether the checkbox is checked or not
         try:    # Error handling, allows program to keep running in the case of a FileNotFoundError
             x_axis = f.axes[0]
             x_axis.xaxis.set_major_locator(minutes)
-            a.clear()   # Clear the plot after everytime so it is on the relevant data
-            a.plot(app.frames[HomePage].years, app.frames[HomePage].balance)
-            a.set_xlabel('Years')
-            a.set_ylabel('Balance')
+            a1.clear()   # Clear the plot after everytime so it is on the relevant data
+            a1.plot(app.frames[HomePage].years, app.frames[HomePage].balance)
+            a2.plot(app.frames[HomePage].years, app.frames[HomePage].total_contributions)
+            a1.set_xlabel('Years')
+            a1.set_ylabel('Balance')
         except ValueError:   # no file was found
             # tell user no file was found, then reset back to normal
             print('data not calculated')
@@ -45,23 +52,6 @@ def animate(i):  # This function is called at the bottom of the script with the 
             time.sleep(1.5)
             app.frames[PlotPage].plot_checkbox['text'] = 'Check Box to Enable Live Plotting'
             app.frames[PlotPage].update()
-
-
-class Intry(tk.Entry):
-    def __init__(self, master=None, **kwargs):
-        self.var = tk.StringVar()
-        tk.Entry.__init__(self, master, textvariable=self.var, **kwargs)
-        self.old_value = ''
-        self.var.trace('w', self.check)
-        self.get, self.set = self.var.get, self.var.set
-
-    def check(self, *args):
-        if self.get().isdigit():
-            # the current value is only digits; allow this
-            self.old_value = self.get()
-        else:
-            # there's non-digit characters in the input; reject this
-            self.set(self.old_value)
 
 
 class MainWindow(tk.Tk):
@@ -102,6 +92,7 @@ class HomePage(tk.Frame):
         self.controller = controller
         self.running = False    # running is false until run button clicked AND encoder is detected
         tk.Frame.__init__(self, parent)
+        val_cmd = (controller.register(self.validate), '%P')  # master is root in thie case.
 
         # Text to display on the top of the pages
         label = tk.Label(self, text="Compound Interest Calculator", font=LARGE_FONT)
@@ -109,72 +100,84 @@ class HomePage(tk.Frame):
 
         self.label1 = tk.Label(self, text='Initial Account Value', font=("Helvetica", 14), padx=20)
         self.label1.place(x=112.5, y=175, anchor='w', relwidth=.45)
-        self.entry1 = Intry(self, justify=CENTER)
+        self.entry1 = tk.Entry(self, justify=CENTER)
         self.entry1.place(x=387.5, y=175, relwidth=.1, anchor='e')
-        self.entry1.set(1500)
+        self.entry1.insert('end', 1500)
 
         self.label2 = tk.Label(self, text='Account Contributions', font=("Helvetica", 14), padx=25)
         self.label2.place(x=112.5, y=200, anchor='w', relwidth=.45)
-        self.entry2 = Intry(self, justify=CENTER)
+        self.entry2 = tk.Entry(self, justify=CENTER)
         self.entry2.place(x=387.5, y=200, relwidth=.1, anchor='e')
-        self.entry2.set(500)
+        self.entry2.insert('end', 500)
 
         self.label3 = tk.Label(self, text='Contributions per year', font=("Helvetica", 14), padx=30)
         self.label3.place(x=112.5, y=225, anchor='w', relwidth=.45)
-        self.entry3 = Intry(self, justify=CENTER)
+        self.entry3 = tk.Entry(self, justify=CENTER)
         self.entry3.place(x=387.5, y=225, relwidth=.1, anchor='e')
-        self.entry3.set(12)
+        self.entry3.insert('end', 12)
 
         self.label4 = tk.Label(self, text='Annualized Returns', font=("Helvetica", 14), padx=35)
         self.label4.place(x=112.5, y=250, anchor='w', relwidth=.45)
-        self.entry4 = Intry(self, justify=CENTER)
+        self.entry4 = tk.Entry(self, justify=CENTER)
         self.entry4.place(x=387.5, y=250, relwidth=.1, anchor='e')
-        self.entry4.set(8)
+        self.entry4.insert('end', 8)
 
         self.label5 = tk.Label(self, text='Years to Grow', font=("Helvetica", 14), padx=40)
         self.label5.place(x=112.5, y=275, anchor='w', relwidth=.45)
-        self.entry5 = Intry(self, justify=CENTER)
+        self.entry5 = tk.Entry(self, justify=CENTER)
         self.entry5.place(x=387.5, y=275, relwidth=.1, anchor='e')
-        self.entry5.set(10)
+        self.entry5.insert('end', 10)
+
+        self.entry1.config(validate='key', validatecommand=val_cmd)
+        self.entry2.config(validate='key', validatecommand=val_cmd)
+        self.entry3.config(validate='key', validatecommand=val_cmd)
+        self.entry4.config(validate='key', validatecommand=val_cmd)
+        self.entry5.config(validate='key', validatecommand=val_cmd)
 
         # button to go to plot page
-        self.button1 = tk.Button(self, text="Calculate", bg='white',
-                                 command=lambda: calculate())
-        self.button1.place(x=250, y=315, relwidth=.55, anchor=CENTER)
+        self.CalcButton = tk.Button(self, text="Calculate", bg='white',
+                                    command=lambda: self.calculate())
+        self.CalcButton.place(x=250, y=315, relwidth=.55, anchor=CENTER)
 
         self.label6 = tk.Label(self, text='Final Value', font=("Helvetica", 14), padx=4)
         self.label6.place(x=250, y=350, anchor=CENTER)
 
         # button to go to plot page
-        self.button1 = tk.Button(self, text="Show Plot",
-                                 command=lambda: controller.show_frame(PlotPage))
-        self.button1.place(relx=.025, rely=.15, relwidth=.15, anchor='w')
+        self.plotbutton = tk.Button(self, text="Show Plot",
+                                    command=lambda: controller.show_frame(PlotPage))
+        self.plotbutton.place(relx=.025, rely=.15, relwidth=.15, anchor='w')
 
         self.balance = []
         self.total_contributions = []
         self.years = np.arange(1, int(self.entry5.get()))
 
-        # nums = []
-        # while (num := input("Enter a number: ")).isdigit():
-        #    nums.append(num)
+    def validate(self, input_text):
+        if not input_text:
+            return True
+        try:
+            float(input_text)
+            return True
+        except ValueError:
+            return False
 
-        def calculate():
-            self.balance = [int(self.entry1.get())]
-            self.total_contributions = [self.balance[0]]
-            self.years = np.arange(1, int(self.entry5.get()))
-            contributions = int(self.entry2.get())
-            c_per_year = int(self.entry3.get())
-            annual = int(contributions * c_per_year)
-            rate = 1 + (int(self.entry4.get()) / 100)
+    def calculate(self):
+        self.balance = [int(self.entry1.get())]
+        self.total_contributions = [self.balance[0]]
+        self.years = np.arange(1, int(self.entry5.get())+1)
+        contributions = int(self.entry2.get())
+        c_per_year = int(self.entry3.get())
+        annual = int(contributions * c_per_year)
+        rate = 1 + (int(self.entry4.get()) / 100)
 
-            for i in self.years:
-                self.balance.append((self.balance[i-1] + annual) * rate)
-                self.total_contributions.append(self.total_contributions[i-1] + annual)
-            line_one = 'Final Account Value: $' + f'{round(self.balance[-1], 2):,}'
-            line_two = f'Total Contributions: ${round(self.total_contributions[-1], 2):,}'
-            self.label6['text'] = line_one + '\n' + line_two
-            self.years = np.insert(self.years, 0, 0)
-            print(self.balance, '\n', self.years)
+        for i in self.years:
+            self.balance.append((self.balance[i-1] + annual) * rate)
+            self.total_contributions.append(self.total_contributions[i-1] + annual)
+        line_one = 'Final Account Value: $' + f'{round(self.balance[-1], 2):,}'
+        line_two = f'Total Contributions: ${round(self.total_contributions[-1], 2):,}'
+        self.label6['text'] = line_one + '\n' + line_two
+        self.years = np.insert(self.years, 0, 0)
+        print(self.balance, '\n', self.years)
+        self.CalcButton['relief'] = tk.RAISED
 
 
 class PlotPage(tk.Frame):
@@ -185,10 +188,6 @@ class PlotPage(tk.Frame):
         # Label at the top of the page
         label = tk.Label(self, text="Slack Adjuster Sensing Road Test", font=LARGE_FONT)
         label.place(relx=.5, y=15, anchor=CENTER)
-
-        # The label above the status 'LED'
-        self.reading_label = tk.Label(self, text='here')
-        self.reading_label.place(x=250, y=40, anchor=CENTER)
 
         # canvas area for the graph itself
         canvas = FigureCanvasTkAgg(f, self)
@@ -213,5 +212,6 @@ class PlotPage(tk.Frame):
 
 if __name__ == '__main__':
     app = MainWindow()
+
     ani = animation.FuncAnimation(f, animate, interval=1000)
     app.mainloop()
