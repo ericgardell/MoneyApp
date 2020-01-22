@@ -1,22 +1,16 @@
-import csv
-import glob
-import sys
 import time
 import timeit
 import tkinter as tk    # Module that the GUI itself uses
-from datetime import datetime, timedelta
-from os import path
-
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
-# import serial
 from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from pandas.plotting import register_matplotlib_converters
+import matplotlib.pyplot as plt
 
 register_matplotlib_converters()
 matplotlib.use("TkAgg")       # allow matplotlib to work better with TKinter
@@ -42,21 +36,11 @@ def animate(i):  # This function is called at the bottom of the script with the 
             a.plot(app.frames[HomePage].years, app.frames[HomePage].balance)
             a.set_xlabel('Years')
             a.set_ylabel('Balance')
-            # else:       # if data_in_file is false, trying to plot would result in an error,
-            #     print('data File not found')
-            #     # reset checkbox, tell user than the file was empty
-            #     app.frames[PlotPage].plot_checkbox.deselect()   # deselect the checkbox
-            #     app.frames[PlotPage].plot_checkbox['text'] = 'data File empty'
-            #     app.frames[PlotPage].update()   # force the window to display the changes
-            #     time.sleep(1.5)     # wait 1.5 sec so user has a chance to read the text
-            #     # change text back to original
-            #     app.frames[PlotPage].plot_checkbox['text'] = 'Check Box to Enable Live Plotting'
-            #     app.frames[PlotPage].update()   # force the window to display the changes
-        except FileNotFoundError:   # no file was found
+        except ValueError:   # no file was found
             # tell user no file was found, then reset back to normal
-            print('data File not found')
+            print('data not calculated')
             app.frames[PlotPage].plot_checkbox.deselect()
-            app.frames[PlotPage].plot_checkbox['text'] = 'data File not found'
+            app.frames[PlotPage].plot_checkbox['text'] = 'data not calculated'
             app.frames[PlotPage].update()
             time.sleep(1.5)
             app.frames[PlotPage].plot_checkbox['text'] = 'Check Box to Enable Live Plotting'
@@ -166,8 +150,8 @@ class HomePage(tk.Frame):
                                  command=lambda: controller.show_frame(PlotPage))
         self.button1.place(relx=.025, rely=.15, relwidth=.15, anchor='w')
 
-        self.balance = [int(self.entry1.get())]
-        self.total_contributions = [self.balance[0]]
+        self.balance = []
+        self.total_contributions = []
         self.years = np.arange(1, int(self.entry5.get()))
 
         # nums = []
@@ -175,6 +159,9 @@ class HomePage(tk.Frame):
         #    nums.append(num)
 
         def calculate():
+            self.balance = [int(self.entry1.get())]
+            self.total_contributions = [self.balance[0]]
+            self.years = np.arange(1, int(self.entry5.get()))
             contributions = int(self.entry2.get())
             c_per_year = int(self.entry3.get())
             annual = int(contributions * c_per_year)
@@ -206,12 +193,12 @@ class PlotPage(tk.Frame):
         # canvas area for the graph itself
         canvas = FigureCanvasTkAgg(f, self)
         canvas.draw()
-        canvas.get_tk_widget().place(relx=.5, rely=.5, relheight=.5, relwidth=.5, anchor=CENTER)
+        canvas.get_tk_widget().place(relx=.5, rely=.5, relheight=.5, relwidth=.45, anchor=CENTER)
 
         # adding the matplotlib toolbar at the bottom of the page
         toolbar = NavigationToolbar2Tk(canvas, self)
         toolbar.update()
-        canvas._tkcanvas.place(relx=.5, rely=.55, relheight=.75, relwidth=.95, anchor=CENTER)
+        canvas._tkcanvas.place(relx=.5, rely=.55, relheight=.75, relwidth=.98, anchor=CENTER)
 
         # Button to navigate back to the home page
         button1 = tk.Button(self, text="Home", command=lambda: controller.show_frame(HomePage))
